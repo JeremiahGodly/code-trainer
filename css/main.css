@@ -1,0 +1,499 @@
+/* ================================================================
+   GhostCode AI — Design System
+   Aesthetic: Minimal terminal / IDE (VSCode Dark inspired)
+   No gradients. No heavy animations. Performance-first.
+   ================================================================ */
+
+:root {
+  /* Background layers */
+  --bg:         #0d1117;   /* deepest background */
+  --surface:    #161b22;   /* panels, topbars */
+  --surface-2:  #21262d;   /* hover states, nested panels */
+
+  /* Borders */
+  --border:     #30363d;
+
+  /* Text */
+  --text:       #e6edf3;   /* primary */
+  --text-muted: #7d8590;   /* secondary / labels */
+  --text-dim:   #484f58;   /* tertiary / placeholders */
+
+  /* Accent */
+  --green:      #3fb950;   /* typed text, success, progress */
+  --purple:     #8b5cf6;   /* track-level progress */
+  --error:      #f85149;   /* wrong key flash */
+
+  /* Cursor */
+  --cursor-bg:  #e6edf3;
+  --cursor-fg:  #0d1117;
+
+  /* Typography */
+  --font-ui:   'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+
+  /* Layout */
+  --topbar-h:    42px;
+  --sbar-h:      36px;
+  --filetree-w:  210px;
+}
+
+/* ── Reset ─────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: var(--font-ui);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── View System ───────────────────────────────────────────── */
+.view {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+[hidden] { display: none !important; }
+
+/* ── Scrollbar ─────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); }
+::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+
+/* ================================================================
+   LANDING VIEW
+   ================================================================ */
+#view-landing {
+  align-items: center;
+  justify-content: center;
+}
+
+.landing-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.2rem;
+  max-width: 500px;
+  padding: 2rem;
+  text-align: center;
+}
+
+/* Logo: ghostcodeAI */
+.logo {
+  font-family: var(--font-mono);
+  font-size: 2.4rem;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  margin-bottom: 0.25rem;
+}
+.logo-ghost { color: var(--text-muted); }
+.logo-code  { color: var(--green); }
+.logo-ai {
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: var(--text-dim);
+  letter-spacing: 0.12em;
+  vertical-align: super;
+  margin-left: 0.2em;
+}
+
+.landing-h1 {
+  font-family: var(--font-ui);
+  font-size: 1.9rem;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+
+.landing-sub {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.75;
+}
+
+.landing-stats {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  letter-spacing: 0.06em;
+  margin-top: 0.25rem;
+}
+
+/* ================================================================
+   SHARED: VIEW HEADER (tracks + any future view headers)
+   ================================================================ */
+.view-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  height: var(--topbar-h);
+  min-height: var(--topbar-h);
+  padding: 0 1.25rem;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.view-title {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* ================================================================
+   TRACK SELECTION VIEW
+   ================================================================ */
+.tracks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(265px, 1fr));
+  overflow-y: auto;
+  flex: 1;
+}
+
+.track-card {
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  padding: 1.4rem 1.5rem;
+  cursor: pointer;
+  color: var(--text);
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  outline: none;
+  transition: background 0.08s;
+}
+
+.track-card:hover  { background: var(--surface); }
+.track-card:focus-visible { outline: 1px solid var(--green); outline-offset: -1px; }
+
+.tc-icon {
+  font-size: 1.35rem;
+  line-height: 1;
+  margin-bottom: 0.35rem;
+}
+
+.tc-name {
+  font-family: var(--font-mono);
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.tc-desc {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.tc-repo {
+  font-family: var(--font-mono);
+  font-size: 0.67rem;
+  color: var(--text-dim);
+  margin-top: 0.4rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tc-progress {
+  margin-top: 0.6rem;
+}
+
+.tc-prog-bar {
+  height: 2px;
+  background: var(--surface-2);
+}
+
+.tc-prog-fill {
+  height: 100%;
+  background: var(--green);
+}
+
+.tc-prog-text {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  margin-top: 0.25rem;
+}
+
+/* "DONE" badge on completed tracks */
+.tc-badge {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  color: var(--green);
+  border: 1px solid var(--green);
+  padding: 0.08rem 0.4rem;
+  letter-spacing: 0.08em;
+  align-self: flex-start;
+  margin-top: 0.4rem;
+}
+
+/* ================================================================
+   LOADING VIEW
+   ================================================================ */
+#view-loading {
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.loading-ring {
+  width: 34px;
+  height: 34px;
+  border: 2px solid var(--border);
+  border-top-color: var(--green);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.loading-msg {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+/* ================================================================
+   MODAL — Repo Configuration
+   ================================================================ */
+.modal {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(1, 4, 9, 0.88);
+}
+
+.modal-box {
+  position: relative;
+  z-index: 1;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  width: min(480px, calc(100vw - 2rem));
+  padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.modal-head {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.2rem;
+}
+
+.modal-icon { font-size: 1.35rem; }
+
+.modal-title {
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.modal-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.field-label {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.field-opt {
+  font-size: 0.68rem;
+  color: var(--text-dim);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.field-input {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  padding: 0.6rem 0.75rem;
+  outline: none;
+}
+
+.field-input:focus { border-color: var(--green); }
+.field-input::placeholder { color: var(--text-dim); }
+
+.modal-note {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+
+.modal-footer {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  margin-top: 0.4rem;
+}
+
+/* ================================================================
+   OVERLAY — File complete / Track complete
+   ================================================================ */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(1, 4, 9, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 150;
+}
+
+.ov-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 2.5rem 3rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  min-width: 290px;
+  text-align: center;
+}
+
+.ov-icon {
+  font-family: var(--font-mono);
+  font-size: 2rem;
+  color: var(--green);
+  line-height: 1;
+}
+
+.ov-title {
+  font-family: var(--font-mono);
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.ov-sub {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.ov-stats {
+  display: flex;
+  gap: 2.5rem;
+}
+
+.ov-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.ov-val {
+  font-family: var(--font-mono);
+  font-size: 1.55rem;
+  font-weight: 700;
+  color: var(--green);
+  line-height: 1.1;
+}
+
+.ov-lbl {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.ov-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+/* ================================================================
+   BUTTONS
+   ================================================================ */
+.btn-primary {
+  background: var(--green);
+  color: #000;
+  border: none;
+  padding: 0.6rem 1.4rem;
+  font-family: var(--font-mono);
+  font-size: 0.83rem;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+.btn-primary:hover  { background: #52c96b; }
+.btn-primary:active { background: #379f47; }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  padding: 0.6rem 1.4rem;
+  font-family: var(--font-mono);
+  font-size: 0.83rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.btn-ghost:hover  { border-color: var(--text-muted); color: var(--text); }
+.btn-ghost:active { background: var(--surface-2); }
+
+.btn-back {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.btn-back:hover { color: var(--text); }

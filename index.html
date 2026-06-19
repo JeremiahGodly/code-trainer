@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GhostCode AI — Learn to Code by Typing</title>
+  <meta name="description" content="Master programming by typing real-world codebases from GitHub repositories, character by character. No tutorials. No hints. Just coding.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/editor.css">
+</head>
+<body>
+
+  <!-- ╔══════════════════════════════╗
+       ║        LANDING VIEW          ║
+       ╚══════════════════════════════╝ -->
+  <div id="view-landing" class="view">
+    <div class="landing-center">
+      <div class="logo">
+        <span class="logo-ghost">ghost</span><span class="logo-code">code</span><sup class="logo-ai">AI</sup>
+      </div>
+      <h1 class="landing-h1">Learn by typing.<br>Not by watching.</h1>
+      <p class="landing-sub">
+        Type real-world codebases from GitHub repositories.<br>
+        One character at a time. No shortcuts. No hints.
+      </p>
+      <button id="btn-start" class="btn-primary" aria-label="Start Training">Start Training</button>
+      <div id="landing-stats" class="landing-stats"></div>
+    </div>
+  </div>
+
+  <!-- ╔══════════════════════════════╗
+       ║     TRACK SELECTION VIEW     ║
+       ╚══════════════════════════════╝ -->
+  <div id="view-tracks" class="view" hidden>
+    <div class="view-header">
+      <button class="btn-back" id="btn-back-landing" aria-label="Back">← Back</button>
+      <span class="view-title">Select a Training Track</span>
+    </div>
+    <div class="tracks-grid" id="tracks-grid">
+      <!-- Populated by renderTracksGrid() -->
+    </div>
+  </div>
+
+  <!-- ╔══════════════════════════════╗
+       ║        LOADING VIEW          ║
+       ╚══════════════════════════════╝ -->
+  <div id="view-loading" class="view" hidden>
+    <div class="loading-center">
+      <div class="loading-ring"></div>
+      <p id="loading-msg" class="loading-msg">Connecting to GitHub...</p>
+    </div>
+  </div>
+
+  <!-- ╔══════════════════════════════╗
+       ║         EDITOR VIEW          ║
+       ╚══════════════════════════════╝ -->
+  <div id="view-editor" class="view" hidden>
+
+    <!-- Top Bar -->
+    <div class="editor-topbar">
+      <button class="btn-back" id="btn-back-tracks" aria-label="Back to tracks">← Tracks</button>
+      <div class="topbar-crumb">
+        <span id="tb-track" class="tb-track"></span>
+        <span class="crumb-sep">/</span>
+        <span id="tb-file" class="tb-file"></span>
+      </div>
+      <div class="topbar-stats">
+        <div class="tstat" id="tstat-wpm">
+          <span class="tstat-val" id="sv-wpm">0</span>
+          <span class="tstat-lbl">WPM</span>
+        </div>
+        <div class="tstat" id="tstat-acc">
+          <span class="tstat-val" id="sv-acc">100</span>
+          <span class="tstat-lbl">ACC%</span>
+        </div>
+        <div class="tstat" id="tstat-chars">
+          <span class="tstat-val" id="sv-chars">0</span>
+          <span class="tstat-lbl">CHARS</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Editor Body: File Tree + Code -->
+    <div class="editor-body">
+
+      <!-- File Tree Panel -->
+      <div class="filetree-panel">
+        <div class="filetree-hdr">FILES</div>
+        <div class="filetree" id="filetree"></div>
+      </div>
+
+      <!-- Code Editor -->
+      <div class="code-area">
+        <div class="code-scroll" id="code-scroll">
+          <pre class="code-pre" id="code-pre" aria-label="Code to type" aria-live="off"><span id="code-typed" class="code-typed"></span><span id="code-cursor" class="code-cursor"> </span><span id="code-remaining" class="code-remaining"></span></pre>
+        </div>
+      </div>
+
+    </div><!-- /editor-body -->
+
+    <!-- Status Bar -->
+    <div class="editor-sbar">
+      <div class="sbar-group">
+        <span class="sbar-lbl">FILE</span>
+        <div class="sbar-track">
+          <div class="sbar-fill" id="sbar-file" style="width:0%"></div>
+        </div>
+        <span class="sbar-pct" id="sbar-file-pct">0%</span>
+      </div>
+      <div class="sbar-divider"></div>
+      <div class="sbar-group">
+        <span class="sbar-lbl">TRACK</span>
+        <div class="sbar-track">
+          <div class="sbar-fill sbar-fill-purple" id="sbar-track" style="width:0%"></div>
+        </div>
+        <span class="sbar-pct" id="sbar-track-pct">0 / 0</span>
+      </div>
+    </div>
+
+  </div><!-- /view-editor -->
+
+  <!-- ╔══════════════════════════════╗
+       ║      REPO CONFIG MODAL       ║
+       ╚══════════════════════════════╝ -->
+  <div id="modal-repo" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-backdrop" id="modal-backdrop"></div>
+    <div class="modal-box">
+      <div class="modal-head">
+        <span class="modal-icon" id="modal-icon" aria-hidden="true"></span>
+        <h2 class="modal-title" id="modal-title"></h2>
+      </div>
+      <div class="modal-field">
+        <label class="field-label" for="inp-repo">GitHub Repository URL</label>
+        <input type="text" id="inp-repo" class="field-input"
+          placeholder="https://github.com/owner/repo"
+          spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off">
+      </div>
+      <div class="modal-field">
+        <label class="field-label" for="inp-token">
+          GitHub Token
+          <span class="field-opt">(optional — raises rate limit to 5000/hr)</span>
+        </label>
+        <input type="password" id="inp-token" class="field-input"
+          placeholder="ghp_xxxxxxxxxxxxxxxx"
+          spellcheck="false" autocomplete="off">
+      </div>
+      <p class="modal-note">Public repos only. No backend needed — code is fetched directly from GitHub.</p>
+      <div class="modal-footer">
+        <button class="btn-ghost" id="btn-modal-cancel">Cancel</button>
+        <button class="btn-primary" id="btn-modal-start">Load &amp; Train →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ╔══════════════════════════════╗
+       ║    FILE COMPLETE OVERLAY     ║
+       ╚══════════════════════════════╝ -->
+  <div id="ov-file-done" class="overlay" hidden role="dialog" aria-modal="true">
+    <div class="ov-box">
+      <div class="ov-icon" aria-hidden="true">✓</div>
+      <h2 class="ov-title" id="fd-title">File Complete</h2>
+      <div class="ov-stats">
+        <div class="ov-stat">
+          <span class="ov-val" id="fd-acc">—</span>
+          <span class="ov-lbl">Accuracy</span>
+        </div>
+        <div class="ov-stat">
+          <span class="ov-val" id="fd-wpm">—</span>
+          <span class="ov-lbl">WPM</span>
+        </div>
+        <div class="ov-stat">
+          <span class="ov-val" id="fd-chars">—</span>
+          <span class="ov-lbl">Chars</span>
+        </div>
+      </div>
+      <button class="btn-primary" id="btn-next-file">Next File →</button>
+    </div>
+  </div>
+
+  <!-- ╔══════════════════════════════╗
+       ║   TRACK COMPLETE OVERLAY     ║
+       ╚══════════════════════════════╝ -->
+  <div id="ov-track-done" class="overlay" hidden role="dialog" aria-modal="true">
+    <div class="ov-box">
+      <div class="ov-icon" aria-hidden="true">★</div>
+      <h2 class="ov-title">Track Complete</h2>
+      <p class="ov-sub" id="td-sub"></p>
+      <div class="ov-stats">
+        <div class="ov-stat">
+          <span class="ov-val" id="td-files">—</span>
+          <span class="ov-lbl">Files</span>
+        </div>
+        <div class="ov-stat">
+          <span class="ov-val" id="td-chars">—</span>
+          <span class="ov-lbl">Chars</span>
+        </div>
+      </div>
+      <div class="ov-actions">
+        <button class="btn-ghost" id="btn-track-restart">Restart Track</button>
+        <button class="btn-primary" id="btn-all-tracks">All Tracks</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts: loaded in dependency order -->
+  <script src="js/tracks.js"></script>
+  <script src="js/github.js"></script>
+  <script src="js/engine.js"></script>
+  <script src="js/progress.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

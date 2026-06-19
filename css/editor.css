@@ -1,0 +1,301 @@
+/* ================================================================
+   GhostCode AI — Editor Styles
+   Layout: TopBar | [FileTree | CodeArea] | StatusBar
+   ================================================================ */
+
+/* ── Editor View Shell ─────────────────────────────────────── */
+#view-editor {
+  flex-direction: column;
+}
+
+/* ================================================================
+   TOP BAR
+   ================================================================ */
+.editor-topbar {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  height: var(--topbar-h);
+  min-height: var(--topbar-h);
+  padding: 0 0.75rem 0 0.5rem;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+/* Breadcrumb: Track / file.js */
+.topbar-crumb {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.tb-track {
+  color: var(--text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.crumb-sep { color: var(--text-dim); flex-shrink: 0; }
+
+.tb-file {
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+/* Stats cluster: WPM · ACC · CHARS */
+.topbar-stats {
+  display: flex;
+  gap: 1.1rem;
+  flex-shrink: 0;
+}
+
+.tstat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  min-width: 2.5rem;
+}
+
+.tstat-val {
+  font-family: var(--font-mono);
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--green);
+  line-height: 1.15;
+}
+
+.tstat-lbl {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  color: var(--text-dim);
+  letter-spacing: 0.1em;
+}
+
+/* ================================================================
+   EDITOR BODY = File Tree + Code Area
+   ================================================================ */
+.editor-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ================================================================
+   FILE TREE PANEL
+   ================================================================ */
+.filetree-panel {
+  width: var(--filetree-w);
+  min-width: var(--filetree-w);
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.filetree-hdr {
+  padding: 0.45rem 0.9rem;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  color: var(--text-dim);
+  letter-spacing: 0.14em;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  text-transform: uppercase;
+}
+
+.filetree {
+  overflow-y: auto;
+  flex: 1;
+  padding: 0.4rem 0;
+}
+
+/* File tree item */
+.ft-item {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.9rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  line-height: 1.45;
+  cursor: default;
+  user-select: none;
+  -webkit-user-select: none;
+  color: var(--text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.ft-item.ft-done {
+  color: var(--green);
+  opacity: 0.65;
+}
+
+.ft-item.ft-current {
+  color: var(--text);
+  background: var(--surface-2);
+}
+
+.ft-icon {
+  flex-shrink: 0;
+  width: 0.9rem;
+  text-align: center;
+  font-size: 0.7rem;
+}
+
+.ft-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
+}
+
+/* ================================================================
+   CODE AREA
+   ================================================================ */
+.code-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.code-scroll {
+  flex: 1;
+  overflow: auto;
+  padding: 2rem 2.5rem 5rem;
+}
+
+/* The pre element that holds all three spans */
+.code-pre {
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  line-height: 1.9;
+  white-space: pre;      /* preserve whitespace, no wrap → horizontal scroll */
+  tab-size: 4;
+  margin: 0;
+  outline: none;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: default;
+}
+
+/* ── Typed text: green ─────────────────────────────────── */
+.code-typed {
+  color: var(--green);
+}
+
+/* ── Cursor (current character) ────────────────────────── */
+.code-cursor {
+  background: var(--cursor-bg);
+  color: var(--cursor-fg);
+  position: relative;
+}
+
+/* Error flash: red block for ~200ms, triggered by JS class toggle */
+.code-cursor.is-error {
+  background: var(--error) !important;
+  color: #fff !important;
+}
+
+/* When cursor is at a newline character: show ↵ symbol */
+.code-cursor.at-newline {
+  background: transparent;  /* no block highlight on the invisible \n */
+  color: transparent;
+}
+.code-cursor.at-newline::before {
+  content: '↵';
+  background: var(--cursor-bg);
+  color: var(--cursor-fg);
+  padding: 0 1px;
+}
+
+/* ── Remaining (upcoming) text: dim ────────────────────── */
+.code-remaining {
+  color: var(--text-dim);
+  opacity: 0.5;
+}
+
+/* ================================================================
+   STATUS BAR
+   ================================================================ */
+.editor-sbar {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  height: var(--sbar-h);
+  min-height: var(--sbar-h);
+  padding: 0 1.25rem;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.sbar-group {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.sbar-lbl {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--text-dim);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.sbar-track {
+  flex: 1;
+  height: 3px;
+  background: var(--surface-2);
+  min-width: 0;
+  overflow: hidden;
+}
+
+.sbar-fill {
+  height: 100%;
+  background: var(--green);
+  width: 0%;
+}
+
+.sbar-fill-purple {
+  background: var(--purple);
+}
+
+.sbar-pct {
+  font-family: var(--font-mono);
+  font-size: 0.63rem;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  min-width: 3rem;
+  text-align: right;
+}
+
+.sbar-divider {
+  width: 1px;
+  height: 1rem;
+  background: var(--border);
+  flex-shrink: 0;
+}
