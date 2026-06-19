@@ -36,6 +36,9 @@ const App = {
 
   /* Whether keyboard events should be routed to the engine */
   typingActive: false,
+
+  /* Callback set when README intro is shown; cleared after use */
+  readmeCallback: null,
 };
 
 /* ── Initialization ─────────────────────────────────────────── */
@@ -131,6 +134,15 @@ function setupEvents() {
   /* Block drag-drop */
   document.addEventListener('dragover', e => e.preventDefault());
   document.addEventListener('drop',     e => e.preventDefault());
+
+  /* README intro overlay */
+  document.getElementById('btn-readme-start').addEventListener('click', () => {
+    // Advance past the README file to the next typeable file
+    App.readmeCallback && App.readmeCallback();
+  });
+  document.getElementById('btn-readme-skip').addEventListener('click', () => {
+    App.readmeCallback && App.readmeCallback();
+  });
 }
 
 /* ── Modal Start Handler ────────────────────────────────────── */
@@ -222,6 +234,12 @@ async function loadFileAtIndex(index) {
 
   const filePath = files[index];
 
+  // ── README.md: show as intro window, don't type it ──
+  if (/^(.*\/)?readme\.md$/i.test(filePath)) {
+    showReadmeIntro(filePath, index);
+    return;
+  }
+
   // Show editor shell immediately (file tree + topbar)
   showView('editor');
   updateTopbarBreadcrumb(track.name, filePath);
@@ -304,6 +322,52 @@ function advanceToNextFile() {
 
   loadFileAtIndex(nextIndex);
 }
+
+/* ── README Intro Window ────────────────────────────────────── */
+
+/**
+ * Fetch a README.md file, render it as a readable intro window,
+ * then advance to the next file when the user clicks Start / Skip.
+ * The README itself is never added to the typing engine.
+ */
+async function showReadmeIntro(filePath, readmeIndex) {
+  const track  = App.currentTrack;
+  const { owner, repo, branch, files } = App.trackData;
+
+  // Callback: skip past this README and load next file
+  const proceedToNext = () => {
+    App.readmeCallback = null;
+    // Mark README as "complete" so progress tracking isn't confused
+    markFileComplete(track.id, readmeIndex, {
+      position: 0, accuracy: 100, wpm: 0,
+      totalKeystrokes: 0, errors: 0,
+    });
+    App.fileIndex = readmeIndex + 1;
+    loadFileAtIndex(App.fileIndex);
+  };
+
+  App.readmeCallback = proceedToNext;
+
+  // Show loading while we fetch the README
+  showView('loading');
+  setLoadingMessage(`Loading ${filePath}...`);
+
+  try {
+    const raw = await fetchFileContent(owner, repo, branch, filePath, App.token);
+
+    // Render in the README view
+    document.getElementById('readme-crumb').textContent =
+      `${track.name}  /  ${filePath}`;
+    document.getElementById('readme-content').textContent = raw;
+
+    showView('readme');
+  } catch (err) {
+    // If README can't be loaded, just skip it
+    console.warn(`[GhostCode] Could not load README: ${err.message}`);
+    proceedToNext();
+  }
+}
+
 
 /* ── Keyboard Handler ───────────────────────────────────────── */
 

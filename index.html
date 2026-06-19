@@ -123,6 +123,24 @@
   </div><!-- /view-editor -->
 
   <!-- ╔══════════════════════════════╗
+       ║      README INTRO OVERLAY    ║
+       ╚══════════════════════════════╝ -->
+  <div id="view-readme" class="view readme-view" hidden>
+    <div class="readme-box">
+      <div class="readme-topbar">
+        <span id="readme-crumb" class="readme-crumb"></span>
+        <button class="btn-back" id="btn-readme-skip" aria-label="Skip">Skip</button>
+      </div>
+      <div class="readme-scroll">
+        <pre id="readme-content" class="readme-content"></pre>
+      </div>
+      <div class="readme-footer">
+        <button class="btn-primary" id="btn-readme-start">Start Typing &rarr;</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ╔══════════════════════════════╗
        ║      REPO CONFIG MODAL       ║
        ╚══════════════════════════════╝ -->
   <div id="modal-repo" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="modal-title">

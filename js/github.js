@@ -78,6 +78,77 @@ const SKIP_RE = [
 /* Max file size we'll fetch (bytes). Larger files are auto-skipped. */
 const MAX_FILE_BYTES = 150_000;
 
+/* ── Character sanitization map ────────────────────────────── */
+/**
+ * Maps emoji / non-keyboard characters to ASCII keyboard equivalents.
+ * This ensures users never get stuck on a character they cannot type.
+ */
+const CHAR_REPLACEMENTS = [
+  // Common emoji used in code/docs
+  [/[\u{1F310}\u{1F30D}\u{1F30E}\u{1F30F}]/gu, '[globe]'],
+  [/[\u{1F4BB}\u{1F5A5}\u{1F4F1}\u{1F4F2}]/gu, '[screen]'],
+  [/[\u{1F6E0}\u{1F527}\u{2699}\u{FE0F}]/gu,   '[tool]'],
+  [/[\u{1F512}\u{1F513}\u{1F510}]/gu,           '[lock]'],
+  [/[\u{1F916}]/gu,                              '[bot]'],
+  [/[\u{1F3AE}\u{1F579}]/gu,                    '[game]'],
+  [/[\u{1F4E6}\u{1F4C1}\u{1F4C2}]/gu,          '[pkg]'],
+  [/[\u{2705}\u{2714}]/gu,                       '[ok]'],
+  [/[\u{274C}\u{2716}]/gu,                       '[x]'],
+  [/[\u{26A0}\u{FE0F}\u{26A0}]/gu,             '[!]'],
+  [/[\u{2139}\u{FE0F}]/gu,                       '[i]'],
+  [/[\u{1F4A1}]/gu,                              '[idea]'],
+  [/[\u{1F525}]/gu,                              '[fire]'],
+  [/[\u{2B50}\u{1F31F}]/gu,                     '[star]'],
+  [/[\u{27A1}\u{FE0F}\u{25B6}\u{FE0F}]/gu,    '->'],
+  [/[\u{2190}\u{2B05}\u{FE0F}]/gu,              '<-'],
+  [/\u{2026}/gu,                                 '...'],
+  [/[\u{2018}\u{2019}]/gu,                       "'"],   // curly single quotes
+  [/[\u{201C}\u{201D}]/gu,                       '"'],   // curly double quotes
+  [/[\u{2013}]/gu,                               '-'],   // en dash
+  [/[\u{2014}]/gu,                               '--'],  // em dash
+  [/[\u{00A0}]/gu,                               ' '],   // non-breaking space
+  [/[\u{2022}]/gu,                               '*'],   // bullet
+  [/[\u{00B7}]/gu,                               '.'],   // middle dot
+  [/[\u{00D7}]/gu,                               'x'],   // multiplication sign
+  [/[\u{00F7}]/gu,                               '/'],   // division sign
+  [/[\u{2260}]/gu,                               '!='],  // not-equal
+  [/[\u{2264}]/gu,                               '<='],  // less-or-equal
+  [/[\u{2265}]/gu,                               '>='],  // greater-or-equal
+  [/[\u{221E}]/gu,                               'inf'], // infinity
+  [/[\u{03B1}]/gu,                               'alpha'],
+  [/[\u{03B2}]/gu,                               'beta'],
+  [/[\u{03B3}]/gu,                               'gamma'],
+  [/[\u{03BB}]/gu,                               'lambda'],
+  [/[\u{03C0}]/gu,                               'pi'],
+  [/[\u{03A3}]/gu,                               'Sigma'],
+  [/[\u{2211}]/gu,                               'sum'],
+  [/[\u{221A}]/gu,                               'sqrt'],
+];
+
+/**
+ * Replace any character outside the standard keyboard range with a
+ * typeable ASCII alternative.  Called as part of normalizeContent().
+ *
+ * Strategy:
+ *  1. Apply known emoji / special char → ASCII substitution map.
+ *  2. For any remaining characters with code-point > 126 (outside
+ *     printable ASCII) that are NOT newline (10) or horizontal tab (9),
+ *     replace with '?' so the user can always type it.
+ */
+function sanitizeForTyping(s) {
+  // Apply the known replacements table first
+  for (const [pattern, replacement] of CHAR_REPLACEMENTS) {
+    s = s.replace(pattern, replacement);
+  }
+
+  // Fallback: strip any remaining non-printable-ASCII
+  // Keep: 0x09 (tab), 0x0A (newline), 0x20-0x7E (printable ASCII)
+  s = s.replace(/[^\x09\x0A\x20-\x7E]/g, '?');
+
+  return s;
+}
+
+
 /* ── Helpers ────────────────────────────────────────────────── */
 function buildHeaders(token) {
   const h = { 'Accept': 'application/vnd.github.v3+json' };
@@ -187,32 +258,64 @@ async function fetchFileContent(owner, repo, branch, path, token = null) {
     throw new Error(`"${path}" appears to be a binary file`);
   }
 
-  return normalizeContent(text);
+  return normalizeContent(text, path);
 }
 
 /**
  * Normalize raw file content for the typing engine:
  *  - Unify line endings to \n
+ *  - Sanitize non-keyboard characters (emoji, unicode) to ASCII
  *  - Expand tabs to 4 spaces (consistent for typing)
+ *  - For .md files: strip ## heading lines and blank description lines
+ *    (README intro is shown separately, not typed)
  *  - Strip trailing whitespace per line
  *  - Ensure exactly one trailing newline
+ *
+ * @param {string} raw   - raw file text
+ * @param {string} [filePath] - optional file path, used to detect .md files
  */
-function normalizeContent(raw) {
+function normalizeContent(raw, filePath = '') {
   let s = raw
     .replace(/\r\n/g, '\n')
     .replace(/\r/g, '\n');
 
-  // Expand tabs → 4 spaces
+  // Sanitize emoji and non-keyboard Unicode to typeable ASCII
+  s = sanitizeForTyping(s);
+
+  // For markdown files: strip heading lines (# / ##) and separator lines
+  // so users only type actual code/prose content, not markdown structure.
+  const isMd = /\.mdx?$/i.test(filePath);
+  if (isMd) {
+    s = s
+      .split('\n')
+      .filter(line => {
+        const t = line.trim();
+        // Skip markdown headings (# Heading, ## Sub, etc.)
+        if (/^#{1,6}\s/.test(t)) return false;
+        // Skip horizontal rules
+        if (/^(-{3,}|\*{3,}|_{3,})$/.test(t)) return false;
+        // Skip badge lines (common in READMEs): [![...](...)](...)  or  ![...](...)
+        if (/^!?\[/.test(t) && /\]\(/.test(t)) return false;
+        return true;
+      })
+      .join('\n');
+  }
+
+  // Expand tabs -> 4 spaces
   s = s.replace(/\t/g, '    ');
 
   // Strip trailing whitespace per line
   s = s.split('\n').map(line => line.trimEnd()).join('\n');
+
+  // Remove sequences of more than 2 blank lines (trim padding)
+  s = s.replace(/\n{3,}/g, '\n\n');
 
   // Single trailing newline
   s = s.trimEnd() + '\n';
 
   return s;
 }
+
 
 /**
  * Parse a GitHub repo URL or short "owner/repo" string.
