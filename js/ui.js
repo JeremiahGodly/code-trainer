@@ -276,6 +276,7 @@ function hideTrackDoneOverlay() {
 function openRepoModal(track) {
   document.getElementById('modal-icon').textContent  = track.icon;
   document.getElementById('modal-title').textContent = track.name;
+  document.getElementById('modal-purpose').textContent = track.purpose || '';
 
   const custom = getCustomRepo(track.id);
   const repoUrl = custom

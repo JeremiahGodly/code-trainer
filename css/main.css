@@ -321,6 +321,16 @@ body {
   margin-bottom: 0.2rem;
 }
 
+.modal-purpose {
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+  background: var(--surface-2);
+  border-left: 3px solid var(--purple);
+  padding: 0.6rem 0.8rem;
+  font-family: var(--font-ui);
+}
+
 .modal-icon { font-size: 1.35rem; }
 
 .modal-title {
