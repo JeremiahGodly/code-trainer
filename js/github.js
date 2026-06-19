@@ -282,16 +282,22 @@ function normalizeContent(raw, filePath = '') {
   // Sanitize emoji and non-keyboard Unicode to typeable ASCII
   s = sanitizeForTyping(s);
 
-  // For markdown files: strip heading lines (# / ##) and separator lines
-  // so users only type actual code/prose content, not markdown structure.
+  // Filter out any lines starting with '#' (comments in Python/Bash/YAML, headings in Markdown, etc.)
+  s = s
+    .split('\n')
+    .filter(line => {
+      const t = line.trim();
+      return !t.startsWith('#');
+    })
+    .join('\n');
+
+  // For markdown files: strip separator/badge lines
   const isMd = /\.mdx?$/i.test(filePath);
   if (isMd) {
     s = s
       .split('\n')
       .filter(line => {
         const t = line.trim();
-        // Skip markdown headings (# Heading, ## Sub, etc.)
-        if (/^#{1,6}\s/.test(t)) return false;
         // Skip horizontal rules
         if (/^(-{3,}|\*{3,}|_{3,})$/.test(t)) return false;
         // Skip badge lines (common in READMEs): [![...](...)](...)  or  ![...](...)
