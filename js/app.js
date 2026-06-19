@@ -234,8 +234,8 @@ async function loadFileAtIndex(index) {
 
   const filePath = files[index];
 
-  // ── README.md: show as intro window, don't type it ──
-  if (/^(.*\/)?readme\.md$/i.test(filePath)) {
+  // ── Markdown files: show as intro window, don't type it ──
+  if (/\.mdx?$/i.test(filePath)) {
     showReadmeIntro(filePath, index);
     return;
   }
