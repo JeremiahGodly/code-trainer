@@ -278,10 +278,15 @@
   height: 100%;
   background: var(--green);
   width: 0%;
+  transition: width 0.3s ease;
 }
 
 .sbar-fill-purple {
   background: var(--purple);
+}
+
+.sbar-fill-blue {
+  background: var(--blue);
 }
 
 .sbar-pct {

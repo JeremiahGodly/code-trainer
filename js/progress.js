@@ -163,7 +163,30 @@ function getGlobalStats() {
     completedFiles += track.files.filter(f => f.completed).length;
   }
 
-  return { totalChars, totalFiles, completedFiles };
+  return { totalChars, totalFiles, completedFiles, topWPM: data.topWPM || 0 };
+}
+
+/**
+ * Update the global top WPM record if the given value is higher.
+ * @returns {boolean} true if it was a new record
+ */
+function updateTopWPM(wpm) {
+  if (typeof wpm !== 'number' || wpm <= 0) return false;
+  const data = _read();
+  const currentTop = data.topWPM || 0;
+  if (wpm > currentTop) {
+    data.topWPM = wpm;
+    _write(data);
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Get the current global top WPM.
+ */
+function getTopWPM() {
+  return _read().topWPM || 0;
 }
 
 /* ── Custom Repo Overrides ──────────────────────────────────── */

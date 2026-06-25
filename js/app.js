@@ -245,7 +245,8 @@ async function loadFileAtIndex(index) {
   updateTopbarBreadcrumb(track.name, filePath);
   renderFileTree(files, index);
   updateProgressBars(0, index, files.length);
-  updateTopbarStats({ wpm: 0, accuracy: 100, position: 0 });
+  updateTopbarStats({ wpm: 0, accuracy: 100, position: 0 }, getTopWPM());
+  updateSpeedMeter(0);
 
   // Clear code display while loading (use public ui helper)
   clearCodeDisplay();
@@ -272,7 +273,9 @@ async function loadFileAtIndex(index) {
       content,
 
       onProgress(stats) {
-        updateTopbarStats(stats);
+        updateTopWPM(stats.wpm);
+        updateTopbarStats(stats, getTopWPM());
+        updateSpeedMeter(stats.wpm);
         updateProgressBars(stats.progressPct, index, files.length);
         renderCode(App.engine.getRenderParts());
       },
@@ -295,7 +298,9 @@ async function loadFileAtIndex(index) {
 
     // Initial render
     renderCode(App.engine.getRenderParts());
-    updateTopbarStats(App.engine.getStats());
+    const initialStats = App.engine.getStats();
+    updateTopbarStats(initialStats, getTopWPM());
+    updateSpeedMeter(initialStats.wpm);
 
   } catch (err) {
     // File failed to load — skip it silently

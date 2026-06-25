@@ -21,6 +21,7 @@
   /* Accent */
   --green:      #3fb950;   /* typed text, success, progress */
   --purple:     #8b5cf6;   /* track-level progress */
+  --blue:       #3b82f6;   /* speed meter */
   --error:      #f85149;   /* wrong key flash */
 
   /* Cursor */

@@ -121,8 +121,10 @@ function updateTopbarBreadcrumb(trackName, filePath) {
   if (fiEl) fiEl.textContent = filePath;
 }
 
-function updateTopbarStats(stats) {
+function updateTopbarStats(stats, topWPM = 0) {
   document.getElementById('sv-wpm').textContent   = stats.wpm;
+  const topWpmEl = document.getElementById('sv-top-wpm');
+  if (topWpmEl) topWpmEl.textContent = topWPM;
   document.getElementById('sv-acc').textContent   = stats.accuracy;
   document.getElementById('sv-chars').textContent = stats.position.toLocaleString();
 }
@@ -227,6 +229,21 @@ function updateProgressBars(filePct, filesCompleted, totalFiles) {
   const trackPct = totalFiles > 0 ? Math.round((filesCompleted / totalFiles) * 100) : 0;
   if (tFill) tFill.style.width = trackPct + '%';
   if (tPct)  tPct.textContent  = `${filesCompleted} / ${totalFiles}`;
+}
+
+/**
+ * Update the typing speed meter
+ * @param {number} wpm - Words per minute
+ */
+function updateSpeedMeter(wpm) {
+  const sbarSpeed = document.getElementById('sbar-speed');
+  const sbarSpeedVal = document.getElementById('sbar-speed-val');
+  if (sbarSpeed && sbarSpeedVal) {
+    // Treat 120 WPM as 100% visual width
+    const pct = Math.min(100, Math.round((wpm / 120) * 100));
+    sbarSpeed.style.width = pct + '%';
+    sbarSpeedVal.textContent = wpm + ' WPM';
+  }
 }
 
 /* ================================================================

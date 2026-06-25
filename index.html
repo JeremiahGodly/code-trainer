@@ -72,6 +72,10 @@
           <span class="tstat-val" id="sv-wpm">0</span>
           <span class="tstat-lbl">WPM</span>
         </div>
+        <div class="tstat" id="tstat-top-wpm">
+          <span class="tstat-val" id="sv-top-wpm">0</span>
+          <span class="tstat-lbl">TOP WPM</span>
+        </div>
         <div class="tstat" id="tstat-acc">
           <span class="tstat-val" id="sv-acc">100</span>
           <span class="tstat-lbl">ACC%</span>
@@ -103,6 +107,14 @@
 
     <!-- Status Bar -->
     <div class="editor-sbar">
+      <div class="sbar-group">
+        <span class="sbar-lbl">SPEED</span>
+        <div class="sbar-track">
+          <div class="sbar-fill sbar-fill-blue" id="sbar-speed" style="width:0%"></div>
+        </div>
+        <span class="sbar-pct" id="sbar-speed-val">0 WPM</span>
+      </div>
+      <div class="sbar-divider"></div>
       <div class="sbar-group">
         <span class="sbar-lbl">FILE</span>
         <div class="sbar-track">
